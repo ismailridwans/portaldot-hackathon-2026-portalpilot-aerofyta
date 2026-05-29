@@ -113,29 +113,21 @@ export default function Landing({ onLaunch }: { onLaunch: () => void }) {
       <header className="lp-hero" id="top">
         <ParticleField theme={theme} />
         <div className="hero-inner">
-          <Reveal>
-            <div className="lp-eyebrow">
-              <span className="dot" /> Live on Portaldot mainnet{block ? <> · block <b className="eyebrow-num">#{block.toLocaleString()}</b></> : " · block streaming"}
-            </div>
-          </Reveal>
-          <Reveal delay={80}>
-            <h1 className="lp-title">One sentence to <span className="grad-text">on-chain.</span></h1>
-          </Reveal>
-          <Reveal delay={160}>
-            <p className="lp-sub">
-              PortalPilot is the AI copilot &amp; command center for Portaldot. Say what you want — it explains,
-              simulates with the real POT fee, and executes only after you confirm.
-            </p>
-          </Reveal>
-          <Reveal delay={240}>
-            <div className="lp-cta">
-              <button className="cta-combo" onClick={onLaunch}>
-                <span className="cta-label">Launch App</span>
-                <span className="cta-circle"><Icon name="arrow" size={18} /></span>
-              </button>
-              <button className="pill ghost lg" onClick={onLaunch}><Icon name="play" size={15} /> See it live</button>
-            </div>
-          </Reveal>
+          <div className="lp-eyebrow">
+            <span className="dot" /> Live on Portaldot mainnet{block ? <> · block <b className="eyebrow-num">#{block.toLocaleString()}</b></> : " · block streaming"}
+          </div>
+          <h1 className="lp-title">One sentence to <span className="grad-text">on-chain.</span></h1>
+          <p className="lp-sub">
+            PortalPilot is the AI copilot &amp; command center for Portaldot. Say what you want — it explains,
+            simulates with the real POT fee, and executes only after you confirm.
+          </p>
+          <div className="lp-cta">
+            <button className="cta-combo" onClick={onLaunch}>
+              <span className="cta-label">Launch App</span>
+              <span className="cta-circle"><Icon name="arrow" size={18} /></span>
+            </button>
+            <button className="pill ghost lg" onClick={onLaunch}><Icon name="play" size={15} /> See it live</button>
+          </div>
 
           <Reveal delay={320}><LiveDemo onLaunch={onLaunch} /></Reveal>
           <div className="lp-scroll"><Icon name="chevron" size={16} /> scroll to explore</div>
