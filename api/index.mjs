@@ -107208,8 +107208,11 @@ var ApiPromise = class _ApiPromise extends ApiBase {
 
 // src/sdk/portaldot.ts
 var NETWORKS = {
-  mainnet: { label: "Portaldot Mainnet", endpoint: "wss://mainnet.portaldot.io" },
-  local: { label: "Local Dev Node", endpoint: "ws://127.0.0.1:9944" }
+  mainnet: { label: "Portaldot Mainnet", endpoint: process.env.PORTALDOT_WS_MAINNET || "wss://mainnet.portaldot.io" },
+  // Local defaults to a node on this machine. On a hosted deploy you can point
+  // it at a public wss tunnel to your funded dev node via PORTALDOT_LOCAL_WS,
+  // which makes the hosted "Local" network execute real POT-gas writes.
+  local: { label: "Local Dev Node", endpoint: process.env.PORTALDOT_LOCAL_WS || "ws://127.0.0.1:9944" }
 };
 var apis = /* @__PURE__ */ new Map();
 function resolveEndpoint(network) {

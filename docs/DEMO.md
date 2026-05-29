@@ -41,3 +41,40 @@ Goal: prove **native Portaldot deployment + POT gas**, a **working MVP**, **appl
 ### Tips
 - Keep **AI · rules** mode (no API key) so it’s deterministic and offline-safe; mention Claude can be enabled for free-form phrasing.
 - If a write ever lags, it’s block time (~6s) — narrate the dry-run/fee while it includes.
+
+---
+
+## Reproducible proof — one command (`npm run smoke`)
+
+With a local dev node running, `npm run smoke` exercises the whole stack against the **real** chain and prints a transcript anyone can reproduce:
+
+```
+── MAINNET reads ──
+  Portaldot Mainnet | block #2,527,453 | POT 14dp | 25 pallets / 155 calls
+── INTENT parsing ──  8 phrases → correct intents; "make me a sandwich" → declined
+── LOCAL node: plan → dry-run → execute (real POT gas) ──
+  before: Alice 49,975.7978 POT, Bob 50,020 POT
+  PLAN:   Transfer 3 POT → Bob | fee=0.0148 POT | dryRun ok=true
+  EXECUTED: ok=true block=0xedae57821b… tx=0x4f7a1f3b8d…
+           events: balances.Transfer, treasury.Deposit, system.ExtrinsicSuccess
+  after:  Bob 50,023 POT                         ← +3 POT, on-chain
+  remark: EXECUTED ok=true   events: system.Remarked, treasury.Deposit, system.ExtrinsicSuccess
+```
+
+Bob moves **50,020 → 50,023 POT** and the receipt carries `treasury.Deposit` (POT gas paid) — undeniable, repeatable proof of a working native transaction.
+
+## Where each thing runs
+- **Hosted demo** (`portalpilot-ruby.vercel.app`) — live **mainnet reads**, real POT **fee preview**, and the **dry-run safety** (writes are blocked because the demo signer is unfunded on mainnet and there is no faucet). Always on; anyone can open it.
+- **Local** (`npm run dev` + a dev node) — the **successful POT-gas writes** (Alice is funded). This is what the video shows.
+
+## Optional: live writes on the *hosted* URL (tunnel)
+To make the deployed Vercel site execute real writes during a live presentation, expose your funded dev node and point the hosted **Local** network at it:
+```bash
+# 1) run your dev node (WSL):   ./portaldot_dev --dev --rpc-cors all
+# 2) expose it over a public wss tunnel (no account needed):
+cloudflared tunnel --url http://127.0.0.1:9944     # prints https://<id>.trycloudflare.com
+# 3) on Vercel set the env var to the wss form, then redeploy:
+vercel env add PORTALDOT_LOCAL_WS production       # paste wss://<id>.trycloudflare.com
+vercel --prod
+```
+The hosted **Local** network now signs with the funded Alice on your tunneled node and returns real receipts. Caveat: it only works while your node + tunnel are running, and the free tunnel URL changes each run — use it for a live demo, not as the always-on state.
