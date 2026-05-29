@@ -8,3 +8,9 @@ dist/
 npm-debug.log*
 .DS_Store
 *.tar.gz
+
+# scratch / setup
+_*.sh
+_wsl_*.txt
+target/
+contracts/**/target/

@@ -10,6 +10,7 @@ import { planAction, executePlan, estimateFee } from "./sdk/tx";
 import { shortAddr } from "./sdk/format";
 import { understand, hasLLM } from "./intent/index";
 import { DEV_ADDRESSES } from "./intent/types";
+import { flipperAvailable, deployFlipper, flipFlipper, readFlipper } from "./sdk/contracts";
 
 // Quiet two benign @polkadot/api init warnings so demo logs stay clean.
 const _warn = console.warn.bind(console);
@@ -146,6 +147,34 @@ app.post("/api/ask", async (req, res) => {
     const text = String(req.body?.text || "");
     const network = req.body?.network as string | undefined;
     if (!text.trim()) return res.status(400).json({ error: "empty message" });
+
+    // ── ink! smart-contract path (pallet-contracts) — contained; only triggers on contract phrasing ──
+    const lc0 = text.toLowerCase();
+    if (/\b(flipper|ink!?|smart\s?contract)\b/.test(lc0)) {
+      const say = (a: string, data: any = null) =>
+        res.json({ kind: "read", intent: { type: "read", engine: "rules" }, answer: a, view: "none", data });
+      try {
+        if (/\b(deploy|instantiate|launch|create|new)\b/.test(lc0)) {
+          if (!flipperAvailable())
+            return say(
+              "ink! deployment is wired up here via pallet-contracts — but no compiled flipper.contract is bundled for this node yet. Build one on Linux with `cargo contract build` and drop it at contracts/flipper/flipper.contract, then say “deploy flipper” again."
+            );
+          const d = await deployFlipper(network);
+          return say(`Deployed the flipper ink! contract on Portaldot at ${d.address} (block ${d.block.slice(0, 12)}…). Now try “flip the contract” or “read the flipper”.`, d);
+        }
+        if (/\bflip\b/.test(lc0)) {
+          const f = await flipFlipper(network);
+          return say(`Flipped the contract — block ${f.block.slice(0, 12)}…. Say “read the flipper” to see the new value.`, f);
+        }
+        if (/\b(read|get|value|state|current|show)\b/.test(lc0)) {
+          const v = await readFlipper(network);
+          return say(`The flipper's current value is ${v}.`, { value: v });
+        }
+      } catch (e) {
+        return say("Contract op failed: " + errMsg(e));
+      }
+    }
+
     const intent = await understand(text);
 
     if (intent.type === "read") {

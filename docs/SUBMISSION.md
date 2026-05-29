@@ -42,10 +42,10 @@ PortalPilot is a chat copilot + live explorer for Portaldot.
 
 **Submission checklist:** ✅ GitHub repo · ✅ README · ⬜ demo video (record via `docs/DEMO.md`) · ⬜ submit BUIDL on DoraHacks.
 
-**Honest notes:** POT-gas writes are demonstrated on a **local Portaldot dev node** (the project's own bundled binary, identical runtime) because mainnet has no public faucet; reads/fee/dry-run run on **mainnet**. Set `PORTALDOT_SIGNER_SEED` to a funded mainnet account to execute on mainnet too. A copilot-driven **ink! contract deploy** (`pallet-contracts` is live) is the planned next native-deployment booster.
+**Honest notes:** POT-gas writes are demonstrated on a **local Portaldot dev node** (the project's own bundled binary, identical runtime) because mainnet has no public faucet; reads/fee/dry-run run on **mainnet**. Set `PORTALDOT_SIGNER_SEED` to a funded mainnet account to execute on mainnet too. A copilot-driven **ink! contract deploy** is now **wired via pallet-contracts** (`src/sdk/contracts.ts`); it executes once a node-compatible `flipper.contract` is added (see `contracts/flipper/`).
 
 ## What's next
-Wallet-extension signing · copilot-driven ink! deploy/call (`pallet-contracts` is live) · multisig & scheduled actions · spend limits/allowlists · publish `@portalpilot/sdk`.
+ink! deploy/call is **wired via pallet-contracts** (`src/sdk/contracts.ts`, copilot: “deploy flipper” → “flip” → “read”) — add a node-compatible `flipper.contract` to go live · wallet-extension signing · multisig & scheduled actions · spend limits/allowlists · publish `@portalpilot/sdk`.
 
 ## Run it
 ```bash
