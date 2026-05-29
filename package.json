@@ -1,0 +1,30 @@
+{
+  "name": "portalpilot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "PortalPilot — the AI copilot & command center for Portaldot",
+  "scripts": {
+    "spike": "node spike.mjs",
+    "smoke": "tsx src/smoke.ts",
+    "server": "tsx src/server.ts",
+    "dev:server": "tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
+    "@polkadot/api": "^16.5.6",
+    "@polkadot/keyring": "^14.0.3",
+    "@polkadot/util": "^14.0.3",
+    "@polkadot/util-crypto": "^14.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}
