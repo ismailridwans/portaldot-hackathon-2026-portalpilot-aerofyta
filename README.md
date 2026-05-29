@@ -112,7 +112,7 @@ Then, in the app on the **Local** network, say **“deploy flipper”**. The cop
 ### Steps
 ```bash
 # 1. Clone
-git clone https://github.com/ismailridwans/portalpilot.git
+git clone https://github.com/ismailridwans/portaldot-hackathon-2026-portalpilot-aerofyta.git
 cd portalpilot
 
 # 2. Install dependencies
