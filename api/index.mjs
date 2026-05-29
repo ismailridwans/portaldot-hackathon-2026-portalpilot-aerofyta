@@ -107918,7 +107918,7 @@ app.post("/api/ask", async (req, res) => {
     const network = req.body?.network;
     if (!text.trim()) return res.status(400).json({ error: "empty message" });
     const lc0 = text.toLowerCase();
-    if (/\b(flipper|ink!?|smart\s?contract)\b/.test(lc0)) {
+    if (/\b(flipper|ink!?|smart\s?contract|contract)\b/.test(lc0)) {
       const say = (a, data = null) => res.json({ kind: "read", intent: { type: "read", engine: "rules" }, answer: a, view: "none", data });
       try {
         if (/\b(deploy|instantiate|launch|create|new)\b/.test(lc0)) {

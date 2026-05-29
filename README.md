@@ -31,12 +31,12 @@ Result: developers waste hours on boilerplate, and non‑developers can't use th
 - **Act (write, POT gas):** send POT, batch/airdrop, post an on‑chain remark — each turned into a **plan** that is **dry‑run simulated on‑chain** (`system.dryRun`), **priced in POT** (`payment.queryInfo`), and executed **only after explicit confirmation**, returning a real receipt (block hash + events).
 - **Visible workflow tracer:** a live 7‑stage pipeline (Understand → Compose → Simulate → Price → Confirm → Submit → Finalized).
 - **Built‑in live explorer** (the chain has none) and the **first community JS/TS SDK** for Portaldot.
-- **ink! contract deploy/call wired** via `pallet-contracts`, plus light/dark UI and mainnet/local switching.
+- **ink! contract deploy/flip/read wired** to the node's legacy `pallet-contracts` (ready for a compatible artifact), plus light/dark UI and mainnet/local switching.
 
 ### Blockchain Relevance
 PortalPilot is **Substrate‑native**, not a generic/EVM app:
 
-- **Smart contracts:** ink! deploy/call wired through `pallet-contracts` (`@polkadot/api-contract`).
+- **Smart contracts:** ink! deploy/flip/read wired to this node's **legacy** `pallet-contracts` via hand-built extrinsics (`src/sdk/contracts.ts`) — modern `@polkadot/api-contract` assumes WeightV2 and wouldn't match; runs once a compatible ink! ~3.0 artifact is dropped in `contracts/flipper/`.
 - **Payments / DeFi primitives:** `balances.transferKeepAlive`, `utility.batchAll` (airdrops).
 - **DID / identity:** reads the `identity` pallet for on‑chain display names.
 - **Native gas:** every write pays **POT** (verified by `treasury.Deposit` + `system.ExtrinsicSuccess`).
@@ -65,14 +65,14 @@ flowchart LR
     Exp  -->|"/api/chain · /api/blocks"| BE
     Intent --> SDK
     SDK -->|"@polkadot/api"| Chain
-    Contracts -->|"@polkadot/api-contract · pallet-contracts"| Chain
+    Contracts -->|"legacy pallet-contracts (hand-built extrinsics)"| Chain
 ```
 
 ### Core tech stack
 - **Blockchain platform:** Portaldot (Substrate) — mainnet `wss://mainnet.portaldot.io` + local dev node (`ws://127.0.0.1:9944`).
 - **Smart contract language:** ink! (Rust), via `pallet-contracts` (deploy/call wired in `src/sdk/contracts.ts`).
 - **Frontend framework:** React + Vite (TypeScript).
-- **Other components:** `@polkadot/api` + `@polkadot/api-contract`; Node/Express API; deterministic NL parser with an optional Anthropic **Claude** layer.
+- **Other components:** `@polkadot/api` (raw `contracts` extrinsics for the legacy pallet); Node/Express API; deterministic NL parser with an optional Anthropic **Claude** layer.
 
 ---
 
@@ -163,7 +163,7 @@ Or just import the GitHub repo at **vercel.com** — the config is detected auto
 - Writes: transfer, batch/airdrop, on‑chain remark — each with **dry‑run + POT fee + confirm**.
 - Live 7‑stage workflow tracer; built‑in live explorer.
 - Light/dark themes, mainnet/local switching, click‑to‑copy hashes.
-- ink! contract deploy/call wired via `pallet-contracts`.
+- ink! deploy/flip/read wired to this node's legacy `pallet-contracts` (ready for a compatible ink! ~3.0 artifact).
 
 ### Next phase plans (optional)
 - Wallet‑extension signing (Polkadot.js / Talisman / SubWallet) — non‑custodial.

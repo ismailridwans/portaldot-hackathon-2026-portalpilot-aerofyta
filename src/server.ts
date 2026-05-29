@@ -150,7 +150,7 @@ app.post("/api/ask", async (req, res) => {
 
     // ── ink! smart-contract path (pallet-contracts) — contained; only triggers on contract phrasing ──
     const lc0 = text.toLowerCase();
-    if (/\b(flipper|ink!?|smart\s?contract)\b/.test(lc0)) {
+    if (/\b(flipper|ink!?|smart\s?contract|contract)\b/.test(lc0)) {
       const say = (a: string, data: any = null) =>
         res.json({ kind: "read", intent: { type: "read", engine: "rules" }, answer: a, view: "none", data });
       try {
