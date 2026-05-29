@@ -24,8 +24,14 @@ const COMMANDS = [
 
 let idc = 1;
 
+// On the hosted demo (e.g. *.vercel.app) the serverless backend can't reach a
+// node on the visitor's machine, so "Local" (ws://127.0.0.1:9944) can never
+// connect — default to Mainnet there. On localhost dev, default to Local.
+const IS_HOSTED =
+  typeof window !== "undefined" && !/^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+
 export default function Dashboard({ onHome }: { onHome?: () => void }) {
-  const [network, setNetwork] = useState<Network>("local");
+  const [network, setNetwork] = useState<Network>(IS_HOSTED ? "mainnet" : "local");
   const [chain, setChain] = useState<any>(null);
   const [chainErr, setChainErr] = useState("");
   const [blocks, setBlocks] = useState<any[]>([]);
@@ -74,7 +80,10 @@ export default function Dashboard({ onHome }: { onHome?: () => void }) {
       const resp = await api.ask(t, network);
       setMessages((m) => [...m, { id: idc++, role: "assistant", resp }]);
     } catch (e: any) {
-      setMessages((m) => [...m, { id: idc++, role: "assistant", error: e?.message || "request failed" }]);
+      let err = e?.message || "request failed";
+      if (IS_HOSTED && network === "local")
+        err = "The hosted demo can't reach a node on your machine. Switch to Mainnet for live data, or run PortalPilot locally for Local + POT-gas writes.";
+      setMessages((m) => [...m, { id: idc++, role: "assistant", error: err }]);
     } finally {
       setBusy(false);
     }
@@ -102,6 +111,12 @@ export default function Dashboard({ onHome }: { onHome?: () => void }) {
       <Header network={network} setNetwork={setNetwork} chain={chain} chainErr={chainErr} llm={llm} onHome={onHome} />
       <div className="body">
         <main className="chat">
+          {IS_HOSTED && network === "local" && (
+            <div className="net-note">
+              <span><b>Local</b> runs against a node on your machine — not reachable from this hosted demo. Use <b>Mainnet</b> for live data (or run PortalPilot locally for POT-gas writes).</span>
+              <button onClick={() => setNetwork("mainnet")}>Use Mainnet</button>
+            </div>
+          )}
           <div className="messages" ref={scroller}>
             {messages.length === 0 ? (
               <Hero onPick={send} llm={llm} />
