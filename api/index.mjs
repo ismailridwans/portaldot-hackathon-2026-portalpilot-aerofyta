@@ -107488,7 +107488,7 @@ async function planAction(action, network) {
       const acc = await api.query.system.account(signer.address);
       if (acc.data.free.toBigInt() === 0n) {
         warnings.push(
-          "Signer has 0 POT on this network \u2014 execution will fail. Switch to the Local Dev Node (Alice is funded) or fund the account."
+          process.env.VERCEL ? "The demo signer has 0 POT on mainnet, so the on-chain dry-run safely blocks this write \u2014 the safety pipeline is doing its job. To execute a real POT-gas transfer, run PortalPilot locally with the dev node (Alice is funded); see the README." : "Signer has 0 POT on this network \u2014 execution will fail. Switch to the Local Dev Node (Alice is funded) or fund the account."
         );
       }
     }
