@@ -32,6 +32,8 @@
   --pill-fg: #0b1a06;       /* dark text on the lime pill */
   --grad-brand: linear-gradient(135deg, #aaff85 0%, #7fee64 55%, #5fd848 100%);
   --grad-text: linear-gradient(120deg, #ccffac 0%, #7fee64 100%);
+  --grad-accent: linear-gradient(100deg, #5fd848 0%, #7fee64 26%, #b7ff95 47%, #eaffe0 50%, #b7ff95 53%, #7fee64 74%, #5fd848 100%);
+  --accent-glow: rgba(127, 238, 100, 0.34);
   --grad-primary: var(--grad-brand);
 
   --glass-bg: rgba(18, 22, 17, 0.55);
@@ -76,6 +78,8 @@
 
   --grad-brand: linear-gradient(135deg, #4fd23a, #2fae22);
   --grad-text: linear-gradient(120deg, #2fae22, #1c7c14);
+  --grad-accent: linear-gradient(100deg, #166c0f 0%, #2fae22 26%, #57c742 47%, #b6ff97 50%, #57c742 53%, #2fae22 74%, #166c0f 100%);
+  --accent-glow: rgba(47, 174, 34, 0.26);
 
   --glass-bg: rgba(255, 255, 255, 0.62);
   --glass-border: rgba(20, 40, 15, 0.10);
@@ -183,6 +187,17 @@ body {
 .lp-title { font-family: var(--display); font-size: clamp(46px, 8.5vw, 104px); line-height: 0.95; font-weight: 760; letter-spacing: -0.05em; margin: 24px 0 18px; }
 .grad-text { background: var(--grad-text); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: gradShift 6s linear infinite; }
 @keyframes gradShift { to { background-position: 220% 0; } }
+/* hero accent — heavier weight + a premium light-sweep shine + soft glow (light & dark) */
+.lp-title .grad-text {
+  font-weight: 800;
+  letter-spacing: -0.058em;
+  background: var(--grad-accent);
+  background-size: 260% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 10px 26px var(--accent-glow));
+  animation: gradSweep 5.5s ease-in-out infinite;
+}
+@keyframes gradSweep { 0%, 100% { background-position: 128% 0; } 50% { background-position: -12% 0; } }
 .lp-sub { color: var(--txt-2); font-size: clamp(15px, 1.6vw, 18px); line-height: 1.6; max-width: 620px; margin: 0 auto 32px; }
 .lp-cta { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
 /* refined, light hero entrance (blur + rise + fade), staggered */

@@ -130,11 +130,21 @@ npm run build && npm start
 ```
 Optional: set `ANTHROPIC_API_KEY` in `.env` to enable the Claude NL layer (the deterministic parser works without it).
 
+### Deploy to Vercel
+PortalPilot ships a ready Vercel config (`vercel.json` + `api/index.ts`): the React app deploys as a static site and the Express API runs as a serverless function under `/api/*`.
+
+```bash
+npm i -g vercel      # once
+vercel               # preview deploy (links the project)
+vercel --prod        # production deploy
+```
+Or just import the GitHub repo at **vercel.com** — the config is detected automatically. On the live URL, **reads, fee preview and on‑chain dry‑run run against Portaldot mainnet** with no node and no tokens. POT‑gas **writes** (`/api/execute`) need a reachable Portaldot node, so run those from a local `--dev` node (otherwise the dry‑run safely blocks them). Optional Vercel env var: `ANTHROPIC_API_KEY`.
+
 ---
 
 ## Demo
 - **Video link:** `‹add your demo video URL›`
-- **Live demo link (optional):** `http://localhost:5173` (dev) · `http://127.0.0.1:8787` (built) — mainnet reads are live.
+- **Live demo link (optional):** `‹your-project›.vercel.app` (deployed — mainnet reads/fees/dry‑run live) · or local `http://localhost:5173` (dev) / `http://127.0.0.1:8787` (built).
 - **Test accounts / test data:** Substrate dev accounts (funded on a local `--dev` node):
   - `//Alice` → `5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY` (default signer)
   - `//Bob` → `5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty`

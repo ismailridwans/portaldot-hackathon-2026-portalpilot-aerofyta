@@ -210,12 +210,20 @@ app.post("/api/execute", async (req, res) => {
 });
 
 // Serve the built frontend if present (single-command production demo).
+// On Vercel the static site is served by the CDN (outputDirectory), so skip this there.
 const dist = path.resolve(__dirname, "../app/dist");
-if (fs.existsSync(dist)) {
+if (!process.env.VERCEL && fs.existsSync(dist)) {
   app.use(express.static(dist));
   app.use((_req, res) => res.sendFile(path.join(dist, "index.html")));
 }
 
-app.listen(PORT, () => {
-  console.log(`PortalPilot backend → http://127.0.0.1:${PORT}  (LLM: ${hasLLM() ? "on" : "off/deterministic"})`);
-});
+// Listen only when run directly (local dev / `npm start`). On Vercel the app is
+// imported by api/index.ts and invoked per request as a serverless function.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`PortalPilot backend → http://127.0.0.1:${PORT}  (LLM: ${hasLLM() ? "on" : "off/deterministic"})`);
+  });
+}
+
+export default app;
+export { app };
