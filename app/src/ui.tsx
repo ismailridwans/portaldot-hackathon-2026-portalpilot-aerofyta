@@ -121,7 +121,7 @@ export function ParticleField({ theme }: { theme: string }) {
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const N = 60;
     const LINK = 132;
-    const rgb = theme === "light" ? "13,148,136" : "45,212,191"; // teal
+    const rgb = theme === "light" ? "47,174,34" : "127,238,100"; // neon green
     let w = 0, h = 0, raf = 0;
     const pts: { x: number; y: number; vx: number; vy: number }[] = [];
     const mouse = { x: -9999, y: -9999 };

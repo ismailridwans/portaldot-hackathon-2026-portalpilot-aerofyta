@@ -157,7 +157,7 @@ app.post("/api/ask", async (req, res) => {
         if (/\b(deploy|instantiate|launch|create|new)\b/.test(lc0)) {
           if (!flipperAvailable())
             return say(
-              "ink! deployment is wired up here via pallet-contracts — but no compiled flipper.contract is bundled for this node yet. Build one on Linux with `cargo contract build` and drop it at contracts/flipper/flipper.contract, then say “deploy flipper” again."
+              "ink! deploy is wired to this node's legacy pallet-contracts (rent-based, weights-v1). Drop an ink! ~3.0-compatible build at contracts/flipper/ (flipper.contract, or flipper.wasm + flipper.json), then say “deploy flipper” again. Note: a modern ink! 5 build would be rejected by this node."
             );
           const d = await deployFlipper(network);
           return say(`Deployed the flipper ink! contract on Portaldot at ${d.address} (block ${d.block.slice(0, 12)}…). Now try “flip the contract” or “read the flipper”.`, d);

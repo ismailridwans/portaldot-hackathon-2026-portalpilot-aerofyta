@@ -464,39 +464,98 @@ function TransfersTable({ t }: any) {
   );
 }
 
+function ExRow({ icon, k, v }: any) {
+  return (
+    <div className="ex-row2">
+      <span className="ex-ic"><Icon name={icon} size={15} /></span>
+      <span className="ex-k">{k}</span>
+      <span className="ex-v">{v}</span>
+    </div>
+  );
+}
+
 function Explorer({ network, chain, blocks, chainErr }: any) {
+  const [tab, setTab] = useState<"network" | "blocks" | "transfers">("network");
+  const [transfers, setTransfers] = useState<any[]>([]);
+  const [tLoading, setTLoading] = useState(false);
+  useEffect(() => {
+    if (tab !== "transfers") return;
+    let alive = true;
+    setTLoading(true);
+    fetch(`/api/transfers?network=${network}`)
+      .then((r) => r.json())
+      .then((d) => { if (alive) setTransfers(Array.isArray(d) ? d : []); })
+      .catch(() => {})
+      .finally(() => { if (alive) setTLoading(false); });
+    return () => { alive = false; };
+  }, [tab, network]);
+  const sa = (s: string) => (s && s.length > 12 ? s.slice(0, 6) + "…" + s.slice(-4) : s);
+
   return (
     <aside className="explorer">
       <div className="ex-head">
         <span className="ex-title">Live Explorer</span>
         <span className="ex-live"><span className="dot" />{network}</span>
       </div>
-      {chain ? (
-        <>
-          <div className="ex-section">Network</div>
-          <div className="ex-card">
-            <Row k="Chain" v={chain.chain} />
-            <Row k="Runtime" v={`${chain.specName} v${chain.specVersion}`} />
-            <Row k="Token" v={`${chain.symbol} · ${chain.decimals} dp`} />
-            <Row k="Surface" v={`${chain.palletCount}p · ${chain.callCount}x`} />
-            {chain.peers !== undefined && <Row k="Peers" v={chain.peers} />}
-          </div>
-        </>
-      ) : (
-        <div className="muted">{chainErr ? `${network} unreachable` : "connecting…"}</div>
-      )}
-      <div className="ex-section">Recent blocks</div>
-      <div className="ex-blocks">
-        {blocks.map((b: any) => (
-          <div className="ex-block" key={b.hash}>
-            <span className="bn">#{b.number}</span>
-            <span className="bx">{b.extrinsics} ext</span>
-            <code className="bh">{b.hash.slice(0, 12)}…</code>
-          </div>
+      <div className="ex-tabs">
+        {(["network", "blocks", "transfers"] as const).map((t) => (
+          <button key={t} className={"ex-tab " + (tab === t ? "active" : "")} onClick={() => setTab(t)}>
+            {t === "network" ? "Network" : t === "blocks" ? "Blocks" : "Transfers"}
+          </button>
         ))}
-        {!blocks.length && <div className="muted">no data</div>}
       </div>
-      <div className="ex-foot">Portaldot ships no public explorer — so PortalPilot includes one.</div>
+      <div className="ex-scroll">
+        {tab === "network" &&
+          (chain ? (
+            <div className="ex-list">
+              <ExRow icon="globe" k="Chain" v={chain.chain} />
+              <ExRow icon="blocks" k="Runtime" v={`${chain.specName} v${chain.specVersion}`} />
+              <ExRow icon="coins" k="Token" v={`${chain.symbol} · ${chain.decimals} dp`} />
+              <ExRow icon="grid" k="Surface" v={`${chain.palletCount}p · ${chain.callCount}x`} />
+              <ExRow icon="activity" k="Peers" v={String(chain.peers ?? 0)} />
+              <ExRow icon="terminal" k="Head" v={`#${Number(chain.blockNumber).toLocaleString()}`} />
+            </div>
+          ) : (
+            <div className="muted">{chainErr ? `${network} unreachable` : "connecting…"}</div>
+          ))}
+
+        {tab === "blocks" && (
+          <div className="ex-list">
+            {blocks.map((b: any, i: number) => (
+              <div className={"ex-item " + (i === 0 ? "sel" : "")} key={b.hash}>
+                <span className={"ex-bullet " + (i === 0 ? "on" : "")} />
+                <span className="ex-bn">#{b.number}</span>
+                <span className="ex-bx">{b.extrinsics} ext</span>
+                <code className="ex-bh">{b.hash.slice(0, 10)}…</code>
+              </div>
+            ))}
+            {!blocks.length && <div className="muted">no data</div>}
+          </div>
+        )}
+
+        {tab === "transfers" && (
+          <div className="ex-list">
+            {tLoading && <div className="muted">scanning recent blocks…</div>}
+            {!tLoading && !transfers.length && <div className="muted">no recent transfers</div>}
+            {transfers.map((x: any, i: number) => (
+              <div className="ex-item" key={i}>
+                <span className="ex-bullet on" />
+                <span className="ex-bn">#{x.block}</span>
+                <span className="ex-bx">{sa(x.from)} → {sa(x.to)}</span>
+                <code className="ex-bh">{x.amount}</code>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="ex-footer">
+        <span className="ex-avatar"><Icon name="portal" size={16} /></span>
+        <div className="ex-foot-meta">
+          <b>Portaldot</b>
+          <span>{network} · {chain ? "live" : chainErr ? "offline" : "connecting…"}</span>
+        </div>
+        <span className={"ex-foot-dot " + (chainErr ? "off" : "")} />
+      </div>
     </aside>
   );
 }

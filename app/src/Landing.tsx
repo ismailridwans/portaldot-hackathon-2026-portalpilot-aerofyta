@@ -129,7 +129,10 @@ export default function Landing({ onLaunch }: { onLaunch: () => void }) {
           </Reveal>
           <Reveal delay={240}>
             <div className="lp-cta">
-              <button className="pill solid lg shine" onClick={onLaunch}>Launch App <Icon name="arrow" size={16} /></button>
+              <button className="cta-combo" onClick={onLaunch}>
+                <span className="cta-label">Launch App</span>
+                <span className="cta-circle"><Icon name="arrow" size={18} /></span>
+              </button>
               <button className="pill ghost lg" onClick={onLaunch}><Icon name="play" size={15} /> See it live</button>
             </div>
           </Reveal>
@@ -295,6 +298,8 @@ export default function Landing({ onLaunch }: { onLaunch: () => void }) {
         <Reveal delay={70}><p>Reads are free. Writes are simulated &amp; confirmed. No Rust required.</p></Reveal>
         <Reveal delay={130}><button className="pill solid xl shine" onClick={onLaunch}>Launch PortalPilot <Icon name="arrow" size={18} /></button></Reveal>
       </section>
+
+      <div className="lp-wordmark" aria-hidden>PortalPilot</div>
 
       <footer className="lp-foot">
         <div className="foot-brand"><BrandMark size={30} glyph={17} /> <span>PortalPilot</span></div>
