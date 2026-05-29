@@ -5,10 +5,15 @@
   "type": "module",
   "description": "PortalPilot — the AI copilot & command center for Portaldot",
   "scripts": {
-    "spike": "node spike.mjs",
-    "smoke": "tsx src/smoke.ts",
+    "dev": "node scripts/dev.mjs",
+    "dev:server": "tsx watch src/server.ts",
+    "dev:web": "npm --prefix app run dev",
     "server": "tsx src/server.ts",
-    "dev:server": "tsx watch src/server.ts"
+    "start": "tsx src/server.ts",
+    "build": "npm install && npm --prefix app install && npm --prefix app run build",
+    "build:web": "npm --prefix app run build",
+    "smoke": "tsx src/smoke.ts",
+    "spike": "node spike.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

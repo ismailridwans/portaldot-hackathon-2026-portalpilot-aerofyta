@@ -11,6 +11,14 @@ import { shortAddr } from "./sdk/format";
 import { understand, hasLLM } from "./intent/index";
 import { DEV_ADDRESSES } from "./intent/types";
 
+// Quiet two benign @polkadot/api init warnings so demo logs stay clean.
+const _warn = console.warn.bind(console);
+console.warn = (...a: any[]) => {
+  const s = a.map(String).join(" ");
+  if (s.includes("Unable to map [u8; 32]") || s.includes("MetadataApi not available")) return;
+  _warn(...a);
+};
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(cors());
