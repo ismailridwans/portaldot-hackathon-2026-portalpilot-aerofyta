@@ -5,5 +5,5 @@
   "buildCommand": "npm --prefix app install && npm --prefix app run build",
   "outputDirectory": "app/dist",
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
-  "functions": { "api/index.ts": { "maxDuration": 30 } }
+  "functions": { "api/index.mjs": { "maxDuration": 30 } }
 }

@@ -12,6 +12,7 @@
 - **Project Name:** PortalPilot
 - **Repository URL:** https://github.com/ismailridwans/portaldot-hackathon-2026-portalpilot-aerofyta
 - **Demo Video URL:** `‹add your demo video URL›`
+- **Live Demo URL:** https://portalpilot-ruby.vercel.app  *(live on mainnet — reads, POT fee preview & on‑chain dry‑run)*
 
 ### Demo Scene Description
 *(≤200 words — the core flow a reviewer can verify in the video)*
