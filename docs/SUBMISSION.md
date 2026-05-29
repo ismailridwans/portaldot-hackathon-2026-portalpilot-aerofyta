@@ -2,7 +2,7 @@
 
 ## 2.1 Public Demo Submission
 
-- **Repository name (rename to this per spec):** `portaldot-hackathon-2026-portalpilot-‹team-name›`
+- **Repository name (rename to this per spec):** `portaldot-hackathon-2026-portalpilot-aerofyta`
   - Current repo: `https://github.com/ismailridwans/portalpilot` → GitHub → Settings → rename.
 - **Root includes:** ✅ `README.md` (template format) · ✅ `LICENSE` (MIT) · ✅ full source & config.
 

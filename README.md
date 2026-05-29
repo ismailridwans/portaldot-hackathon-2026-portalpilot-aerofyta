@@ -162,8 +162,8 @@ Optional: set `ANTHROPIC_API_KEY` in `.env` to enable the Claude NL layer (the d
 ---
 
 ## Team
-- **Team name:** `‹your team name›`
-- **Members & roles:** `‹name› — Builder / Full‑stack & Substrate integration`
+- **Team name:** AeroFyta
+- **Members & roles:** AeroFyta — Builder · full‑stack & Substrate integration
 - **Contact info (hackathon use only):** `‹email or Discord handle›`
 
 ---
