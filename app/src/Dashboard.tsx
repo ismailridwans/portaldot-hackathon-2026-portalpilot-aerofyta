@@ -1,0 +1,539 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { api } from "./api";
+import { Icon, ThemeToggle } from "./ui";
+
+type Network = "mainnet" | "local";
+type Msg = {
+  id: number;
+  role: "user" | "assistant";
+  text?: string;
+  resp?: any;
+  receipt?: any;
+  executing?: boolean;
+  error?: string;
+};
+
+const COMMANDS = [
+  { icon: "coins", title: "Check a balance", ex: "balance of alice" },
+  { icon: "send", title: "Send POT", ex: "send 1 POT to bob" },
+  { icon: "layers", title: "Batch airdrop", ex: "airdrop 1 POT to bob and 2 POT to charlie" },
+  { icon: "edit", title: "Post a remark", ex: "post on-chain remark: gm Portaldot" },
+  { icon: "blocks", title: "Recent blocks", ex: "show last 5 blocks" },
+  { icon: "activity", title: "Network status", ex: "network status" },
+];
+
+let idc = 1;
+
+export default function Dashboard({ onHome }: { onHome?: () => void }) {
+  const [network, setNetwork] = useState<Network>("local");
+  const [chain, setChain] = useState<any>(null);
+  const [chainErr, setChainErr] = useState("");
+  const [blocks, setBlocks] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [llm, setLlm] = useState(false);
+  const scroller = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    api.health().then((h: any) => setLlm(!!h.llm)).catch(() => {});
+  }, []);
+
+  const refresh = useCallback(async () => {
+    try {
+      setChain(await api.chain(network));
+      setChainErr("");
+    } catch (e: any) {
+      setChainErr(e?.message || "offline");
+      setChain(null);
+    }
+    try {
+      setBlocks(await api.blocks(network, 8));
+    } catch {
+      setBlocks([]);
+    }
+  }, [network]);
+
+  useEffect(() => {
+    refresh();
+    const t = setInterval(refresh, 6000);
+    return () => clearInterval(t);
+  }, [refresh]);
+
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 1e9, behavior: "smooth" });
+  }, [messages]);
+
+  async function send(text: string) {
+    const t = text.trim();
+    if (!t || busy) return;
+    setInput("");
+    setMessages((m) => [...m, { id: idc++, role: "user", text: t }]);
+    setBusy(true);
+    try {
+      const resp = await api.ask(t, network);
+      setMessages((m) => [...m, { id: idc++, role: "assistant", resp }]);
+    } catch (e: any) {
+      setMessages((m) => [...m, { id: idc++, role: "assistant", error: e?.message || "request failed" }]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmPlan(msgId: number, planId: string) {
+    setMessages((m) => m.map((x) => (x.id === msgId ? { ...x, executing: true } : x)));
+    try {
+      const receipt = await api.execute(planId);
+      setMessages((m) => m.map((x) => (x.id === msgId ? { ...x, executing: false, receipt } : x)));
+      refresh();
+    } catch (e: any) {
+      setMessages((m) =>
+        m.map((x) => (x.id === msgId ? { ...x, executing: false, receipt: { ok: false, error: e?.message } } : x))
+      );
+    }
+  }
+
+  function cancelPlan(msgId: number) {
+    setMessages((m) => m.map((x) => (x.id === msgId ? { ...x, receipt: { cancelled: true } } : x)));
+  }
+
+  return (
+    <div className="app">
+      <Header network={network} setNetwork={setNetwork} chain={chain} chainErr={chainErr} llm={llm} onHome={onHome} />
+      <div className="body">
+        <main className="chat">
+          <div className="messages" ref={scroller}>
+            {messages.length === 0 ? (
+              <Hero onPick={send} llm={llm} />
+            ) : (
+              messages.map((msg) => (
+                <MessageView key={msg.id} msg={msg} onConfirm={confirmPlan} onCancel={cancelPlan} onChip={send} />
+              ))
+            )}
+            {busy && (
+              <div className="msg assistant">
+                <div className="avatar"><Icon name="sparkle" size={16} /></div>
+                <div className="bubble typing"><span /><span /><span /></div>
+              </div>
+            )}
+          </div>
+          <Composer input={input} setInput={setInput} send={send} busy={busy} network={network} />
+        </main>
+        <Explorer network={network} chain={chain} blocks={blocks} chainErr={chainErr} />
+      </div>
+    </div>
+  );
+}
+
+function Header({ network, setNetwork, chain, chainErr, llm, onHome }: any) {
+  return (
+    <header className="header">
+      <button className="brand brand-btn" onClick={onHome} title="Back to home">
+        <div className="brand-mark"><Icon name="portal" size={22} /></div>
+        <div>
+          <div className="title">PortalPilot</div>
+          <div className="tag">AI copilot for Portaldot</div>
+        </div>
+      </button>
+      <div className="head-right">
+        <div className={"status " + (chainErr ? "off" : "")}>
+          <span className="dot" />
+          {chain ? (
+            <span className="mono">{chain.chain} · #{Number(chain.blockNumber).toLocaleString()}</span>
+          ) : (
+            <span>{chainErr ? (network === "local" ? "local node offline" : "offline") : "connecting…"}</span>
+          )}
+        </div>
+        <div className="seg">
+          <button className={network === "mainnet" ? "active" : ""} onClick={() => setNetwork("mainnet")}>Mainnet</button>
+          <button className={network === "local" ? "active" : ""} onClick={() => setNetwork("local")}>Local</button>
+        </div>
+        <ThemeToggle />
+        <div className={"ai-badge " + (llm ? "on" : "")} title={llm ? "Claude understanding enabled" : "Deterministic parser (no key needed)"}>
+          <Icon name="sparkle" size={13} /> {llm ? "Claude" : "Rules"}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Hero({ onPick, llm }: any) {
+  return (
+    <div className="hero">
+      <div className="hero-mark"><Icon name="portal" size={30} /></div>
+      <h1>Talk to <span className="accent">Portaldot</span> in plain English</h1>
+      <p className="lead">
+        PortalPilot reads the chain, explains what will happen, simulates every action with the real POT fee,
+        and executes only after you confirm.
+      </p>
+      <div className="cmd-grid">
+        {COMMANDS.map((c) => (
+          <button key={c.ex} className="cmd" onClick={() => onPick(c.ex)}>
+            <span className="ic"><Icon name={c.icon} size={18} /></span>
+            <span>
+              <div className="ct">{c.title}</div>
+              <div className="cx">{c.ex}</div>
+            </span>
+          </button>
+        ))}
+      </div>
+      <div className="hero-note">
+        <Icon name="sparkle" size={14} />
+        <span><b>Reads are free.</b> Writes are dry-run simulated &amp; confirmed — {llm ? "AI understanding on." : "no API key needed."}</span>
+      </div>
+    </div>
+  );
+}
+
+const SUGGEST = [
+  { t: "balance of alice", h: "read an account's POT balance" },
+  { t: "send 1 POT to bob", h: "transfer — dry-run + fee preview first" },
+  { t: "airdrop 1 POT to bob and 2 POT to charlie", h: "one atomic batch transfer" },
+  { t: "post on-chain remark: gm Portaldot", h: "inscribe a message on-chain" },
+  { t: "fee to send 5 POT to bob", h: "estimate gas without sending" },
+  { t: "show last 5 blocks", h: "recent blocks on this network" },
+  { t: "recent transfers", h: "scan recent POT transfers" },
+  { t: "network status", h: "chain, block height & pallets" },
+  { t: "what can I do?", h: "everything PortalPilot supports" },
+];
+
+function Composer({ input, setInput, send, busy, network }: any) {
+  const [focus, setFocus] = useState(false);
+  const [active, setActive] = useState(-1);
+  const q = input.trim().toLowerCase();
+  const matches = (q ? SUGGEST.filter((s) => s.t.toLowerCase().includes(q) || s.h.toLowerCase().includes(q)) : SUGGEST).slice(0, 6);
+  const open = focus && matches.length > 0 && !busy;
+
+  function onKey(e: any) {
+    if (!open) { if (e.key === "Enter") send(input); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, matches.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, -1)); }
+    else if (e.key === "Enter") { e.preventDefault(); if (active >= 0) { send(matches[active].t); setActive(-1); } else send(input); }
+    else if (e.key === "Escape") { setFocus(false); setActive(-1); }
+  }
+
+  return (
+    <div className="composer">
+      <div className="composer-wrap">
+        {open && (
+          <div className="sugg">
+            <div className="sugg-cap">Suggestions — click one, or keep typing</div>
+            {matches.map((s, i) => (
+              <button
+                key={s.t}
+                className={"sugg-row " + (i === active ? "active" : "")}
+                onMouseDown={(e) => { e.preventDefault(); send(s.t); setActive(-1); }}
+                onMouseEnter={() => setActive(i)}
+              >
+                <span className="sugg-t"><Icon name="bolt" size={13} /> {s.t}</span>
+                <span className="sugg-h">{s.h}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="field">
+          <span className="field-ic"><Icon name="sparkle" size={16} /></span>
+          <input
+            value={input}
+            onChange={(e) => { setInput(e.target.value); setActive(-1); }}
+            onKeyDown={onKey}
+            onFocus={() => setFocus(true)}
+            onBlur={() => setTimeout(() => setFocus(false), 130)}
+            placeholder={`Message PortalPilot on ${network}…  try "send 1 POT to bob"`}
+            disabled={busy}
+            autoFocus
+          />
+          <button className="send-btn" onClick={() => send(input)} disabled={busy || !input.trim()} aria-label="Send">
+            <Icon name="send" size={17} />
+          </button>
+        </div>
+        <div className="composer-hint">↑↓ to choose · Enter to run · every write is simulated &amp; confirmed before signing</div>
+      </div>
+    </div>
+  );
+}
+
+function MessageView({ msg, onConfirm, onCancel, onChip }: any) {
+  if (msg.role === "user")
+    return (
+      <div className="msg user">
+        <div className="bubble">{msg.text}</div>
+      </div>
+    );
+  if (msg.error)
+    return (
+      <div className="msg assistant">
+        <div className="avatar err">!</div>
+        <div className="bubble error">{msg.error}</div>
+      </div>
+    );
+  const r = msg.resp;
+  return (
+    <div className="msg assistant">
+      <div className="avatar"><Icon name="sparkle" size={16} /></div>
+      <div className="bubble">
+        {r.answer && <div className="answer">{r.answer}</div>}
+        {r.kind === "read" && <ReadView view={r.view} data={r.data} />}
+        {r.kind === "plan" && <PlanCard msg={msg} plan={r.plan} onConfirm={onConfirm} onCancel={onCancel} />}
+        {(r.kind === "help" || r.kind === "unknown") && r.suggestions && <Chips items={r.suggestions} onChip={onChip} />}
+        {r.intent?.engine && <div className="engine">parsed by {r.intent.engine}</div>}
+      </div>
+    </div>
+  );
+}
+
+function workflowSteps(plan: any, msg: any) {
+  const dry = plan.dryRun;
+  const r = msg.receipt;
+  const confirmed = !!r && !r.cancelled;
+  const cancelled = !!r && r.cancelled;
+  return [
+    { k: "understand", label: "Understand", done: true },
+    { k: "compose", label: "Compose", done: true },
+    { k: "simulate", label: "Simulate", done: dry.ran && dry.ok, fail: dry.ran && !dry.ok },
+    { k: "price", label: "Price", done: true },
+    { k: "confirm", label: "Confirm", done: confirmed, fail: cancelled, active: !r && !msg.executing },
+    { k: "submit", label: "Submit", done: !!(r && r.ok), fail: !!(r && r.ok === false && !r.cancelled), active: !!msg.executing },
+    { k: "finalize", label: "Finalized", done: !!(r && r.ok) },
+  ];
+}
+
+function WorkflowSteps({ steps }: any) {
+  return (
+    <div className="wf-steps">
+      {steps.map((s: any, i: number) => {
+        const state = s.fail ? "fail" : s.done ? "done" : s.active ? "active" : "";
+        return (
+          <div key={s.k} className={"wf-node " + state}>
+            <span className={"wf-dot " + state}>{s.fail ? "✕" : s.done ? <Icon name="check" size={11} /> : i + 1}</span>
+            <span className="wf-label">{s.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function PlanCard({ msg, plan, onConfirm, onCancel }: any) {
+  const dry = plan.dryRun;
+  const blocked = dry.ran && !dry.ok;
+  const engine = msg.resp?.intent?.engine;
+  const r = msg.receipt;
+  const steps = workflowSteps(plan, msg);
+  return (
+    <div className="plan">
+      <div className="plan-strip" />
+      <div className="wf">
+        <span className="wf-title"><Icon name="activity" size={12} /> AI → on-chain workflow{engine ? ` · via ${engine}` : ""}</span>
+        <WorkflowSteps steps={steps} />
+      </div>
+      {!r ? (
+        <>
+          <div className="plan-head">
+            <span className="plan-title">{plan.summary}</span>
+            <span className={"badge " + (dry.ran ? (dry.ok ? "ok" : "bad") : "neutral")}>
+              {dry.ran ? (dry.ok ? "✓ simulated" : "✗ would fail") : "structure ✓"}
+            </span>
+          </div>
+          <div className="kv">
+            <Row k="Extrinsic" v={<code>{actionLabel(plan.action)}</code>} />
+            {plan.action.to && <Row k="Recipient" v={<Mono s={plan.action.to} />} />}
+            {plan.action.amountPot && <Row k="Amount" v={<b>{plan.action.amountPot} POT</b>} />}
+            {plan.action.transfers && <Row k="Recipients" v={`${plan.action.transfers.length} accounts`} />}
+            {plan.action.message && <Row k="Message" v={`“${plan.action.message}”`} />}
+            <Row k="Signer" v={<Mono s={plan.signer} />} />
+            <Row k="Network fee" v={<span className="fee">{plan.feeDisplay}</span>} />
+            <Row k="Dry-run" v={dry.detail} />
+            <Row k="Call data" v={<code className="hex">{plan.callHex.slice(0, 22)}…</code>} />
+          </div>
+          {plan.warnings?.length > 0 && (
+            <div className="warn">{plan.warnings.map((w: string, i: number) => <div key={i}>⚠ {w}</div>)}</div>
+          )}
+          <div className="plan-actions">
+            <button className="btn ghost" disabled={msg.executing} onClick={() => onCancel(msg.id)}>Cancel</button>
+            <button
+              className="btn primary"
+              disabled={msg.executing || blocked}
+              onClick={() => onConfirm(msg.id, plan.id)}
+              title={blocked ? "Dry-run failed — execution is blocked for safety" : ""}
+            >
+              {msg.executing ? "Signing & submitting…" : "Confirm & sign"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="plan-result"><ReceiptCard receipt={r} /></div>
+      )}
+    </div>
+  );
+}
+
+function ReceiptCard({ receipt }: any) {
+  if (receipt.cancelled) return <div className="receipt cancelled">Cancelled — nothing was submitted.</div>;
+  if (!receipt.ok)
+    return (
+      <div className="receipt bad">
+        <b>✗ Failed.</b> {receipt.error}
+      </div>
+    );
+  return (
+    <div className="receipt ok">
+      <div className="receipt-top">
+        <span className="ck"><Icon name="check" size={13} /></span>
+        Executed on-chain — POT gas paid
+      </div>
+      <div className="kv">
+        <Row k="Block" v={<Mono s={receipt.blockHash} />} />
+        <Row k="Tx hash" v={<Mono s={receipt.txHash} />} />
+        <Row k="Events" v={<span className="events">{receipt.events.join(", ")}</span>} />
+      </div>
+    </div>
+  );
+}
+
+function ReadView({ view, data }: any) {
+  if (!data) return null;
+  if (view === "account") return <AccountCard a={data} />;
+  if (view === "blocks") return <BlocksTable blocks={data} />;
+  if (view === "transfers") return <TransfersTable t={data} />;
+  if (view === "chain") return <ChainCard c={data} />;
+  if (view === "fee")
+    return (
+      <div className="kv card">
+        <Row k="Fee" v={<span className="fee">{data.feeDisplay}</span>} />
+        <Row k="Weight" v={<code>{data.weight}</code>} />
+      </div>
+    );
+  return null;
+}
+
+function AccountCard({ a }: any) {
+  return (
+    <div className="kv card">
+      <Row k="Address" v={<Mono s={a.normalized} />} />
+      <Row k="Free" v={<span className="fee">{a.free}</span>} />
+      <Row k="Total" v={a.total} />
+      <Row k="Nonce" v={a.nonce} />
+      {a.identity && <Row k="Identity" v={a.identity} />}
+    </div>
+  );
+}
+
+function ChainCard({ c }: any) {
+  return (
+    <div className="kv card">
+      <Row k="Chain" v={c.chain} />
+      <Row k="Block" v={`#${Number(c.blockNumber).toLocaleString()}`} />
+      <Row k="Runtime" v={`${c.specName} v${c.specVersion}`} />
+      <Row k="Token" v={`${c.symbol} · ${c.decimals} dp`} />
+      <Row k="Surface" v={`${c.palletCount} pallets · ${c.callCount} extrinsics`} />
+      {c.peers !== undefined && <Row k="Peers" v={c.peers} />}
+    </div>
+  );
+}
+
+function BlocksTable({ blocks }: any) {
+  return (
+    <div className="mini">
+      {blocks.map((b: any) => (
+        <div className="mini-row" key={b.hash}>
+          <span className="bn">#{b.number}</span>
+          <span className="bx">{b.extrinsics} ext</span>
+          <code className="bh">{b.hash.slice(0, 16)}…</code>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TransfersTable({ t }: any) {
+  if (!t.length) return <div className="muted">No transfers found in the recent window.</div>;
+  return (
+    <div className="mini">
+      {t.map((x: any, i: number) => (
+        <div className="mini-row" key={i}>
+          <span className="bn">#{x.block}</span>
+          <Mono s={x.from} />
+          <span className="bx">→</span>
+          <Mono s={x.to} />
+          <span className="fee">{x.amount}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Explorer({ network, chain, blocks, chainErr }: any) {
+  return (
+    <aside className="explorer">
+      <div className="ex-head">
+        <span className="ex-title">Live Explorer</span>
+        <span className="ex-live"><span className="dot" />{network}</span>
+      </div>
+      {chain ? (
+        <>
+          <div className="ex-section">Network</div>
+          <div className="ex-card">
+            <Row k="Chain" v={chain.chain} />
+            <Row k="Runtime" v={`${chain.specName} v${chain.specVersion}`} />
+            <Row k="Token" v={`${chain.symbol} · ${chain.decimals} dp`} />
+            <Row k="Surface" v={`${chain.palletCount}p · ${chain.callCount}x`} />
+            {chain.peers !== undefined && <Row k="Peers" v={chain.peers} />}
+          </div>
+        </>
+      ) : (
+        <div className="muted">{chainErr ? `${network} unreachable` : "connecting…"}</div>
+      )}
+      <div className="ex-section">Recent blocks</div>
+      <div className="ex-blocks">
+        {blocks.map((b: any) => (
+          <div className="ex-block" key={b.hash}>
+            <span className="bn">#{b.number}</span>
+            <span className="bx">{b.extrinsics} ext</span>
+            <code className="bh">{b.hash.slice(0, 12)}…</code>
+          </div>
+        ))}
+        {!blocks.length && <div className="muted">no data</div>}
+      </div>
+      <div className="ex-foot">Portaldot ships no public explorer — so PortalPilot includes one.</div>
+    </aside>
+  );
+}
+
+const Row = ({ k, v }: { k: string; v: any }) => (
+  <div className="row">
+    <span className="rk">{k}</span>
+    <span className="rv">{v}</span>
+  </div>
+);
+
+const Chips = ({ items, onChip }: { items: string[]; onChip: (s: string) => void }) => (
+  <div className="chips">
+    {items.map((s, i) => (
+      <button key={i} className="chip" onClick={() => onChip(s)}>{s}</button>
+    ))}
+  </div>
+);
+
+function Mono({ s }: { s: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <code
+      className={"addr copyable " + (copied ? "copied" : "")}
+      title={copied ? "Copied!" : "Click to copy"}
+      onClick={() => { try { navigator.clipboard?.writeText(s); } catch {} setCopied(true); setTimeout(() => setCopied(false), 1100); }}
+    >
+      {s.length > 16 ? s.slice(0, 8) + "…" + s.slice(-6) : s}
+    </code>
+  );
+}
+
+function actionLabel(a: any) {
+  return a.kind === "transfer"
+    ? "balances.transferKeepAlive"
+    : a.kind === "batchTransfer"
+    ? "utility.batchAll"
+    : a.kind === "remark"
+    ? "system.remarkWithEvent"
+    : a.kind;
+}
