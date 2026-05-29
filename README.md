@@ -240,7 +240,7 @@ sequenceDiagram
 | 🌐 **Web app (one‑port prod)** | `http://127.0.0.1:8787` after `npm run build && npm start` |
 | ⛓ **Portaldot mainnet** | `wss://mainnet.portaldot.io` |
 | 📚 **Portaldot dev docs** | [portaldot-dev.readthedocs.io](https://portaldot-dev.readthedocs.io/en/latest/) |
-| 📦 **GitHub** | `‹add your repo URL›` |
+| 📦 **GitHub** | [github.com/ismailridwans/portalpilot](https://github.com/ismailridwans/portalpilot) |
 | 🎬 **Demo video** | `‹add your video URL›` |
 
 The app ships a **landing page** (hero live‑demo, "why", bento features, FAQ) and a **dashboard**:

@@ -462,7 +462,7 @@ code, .addr, .hex, .mono { font-family: var(--mono); font-size: 12px; }
 /* ── composer suggestions ── */
 .composer-wrap { position: relative; max-width: 920px; margin: 0 auto; }
 .field-ic { color: var(--txt-3); display: grid; place-items: center; }
-.sugg { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; box-shadow: var(--sh-2); padding: 6px; z-index: 8; animation: rise 0.18s ease; }
+.sugg { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; box-shadow: var(--sh-2); padding: 6px; z-index: 8; animation: rise 0.18s ease; max-height: 280px; overflow-y: auto; }
 .sugg-cap { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--txt-3); padding: 8px 10px 6px; }
 .sugg-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; width: 100%; text-align: left; border: 0; background: transparent; cursor: pointer; padding: 9px 11px; border-radius: 10px; font-family: var(--sans); color: var(--txt); }
 .sugg-row.active, .sugg-row:hover { background: var(--surface-2); }

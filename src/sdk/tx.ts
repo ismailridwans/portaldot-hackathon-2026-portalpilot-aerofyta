@@ -55,6 +55,33 @@ export function formatDispatchError(api: ApiPromise, dispatchError: any): string
   return "unknown dispatch error";
 }
 
+// Turn a TransactionValidityError (from system.dryRun) into a human sentence.
+export function formatValidityError(err: any): string {
+  try {
+    if (err?.isInvalid) {
+      const t = String(err.asInvalid.type);
+      const map: Record<string, string> = {
+        Payment: "Insufficient balance to pay the transaction fee.",
+        Stale: "Transaction nonce is too low (stale).",
+        Future: "Transaction nonce is too high (future).",
+        BadProof: "Invalid signature / proof.",
+        BadSigner: "Invalid signer for this call.",
+        ExhaustsResources: "Transaction would exhaust block resources.",
+        Call: "This call is not permitted.",
+        AncientBirthBlock: "Transaction birth block is too old.",
+        BadMandatory: "A mandatory dispatch would fail.",
+        MandatoryValidation: "A mandatory dispatch failed validation.",
+      };
+      return map[t] || `Node would reject it (${t}).`;
+    }
+    if (err?.isUnknown) return `Node can't validate it (${String(err.asUnknown.type)}).`;
+    if (err?.toHuman) return JSON.stringify(err.toHuman());
+  } catch {
+    /* ignore */
+  }
+  return "The node would reject this transaction.";
+}
+
 export async function buildActionTx(
   api: ApiPromise,
   action: WriteAction
@@ -102,7 +129,7 @@ async function dryRunSigned(api: ApiPromise, tx: SubmittableExtrinsic<"promise">
       }
       return { ran: true, ok: false, detail: `Would fail: ${formatDispatchError(api, inner.asErr)}` };
     }
-    return { ran: true, ok: false, detail: `Invalid transaction: ${res.asErr?.toString?.() ?? "validity error"}` };
+    return { ran: true, ok: false, detail: formatValidityError(res.asErr) };
   } catch {
     return { ran: false, ok: true, detail: "Dry-run RPC unavailable here; fee + structure validated instead." };
   }

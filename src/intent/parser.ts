@@ -17,7 +17,7 @@ export function parseDeterministic(input: string): Intent {
   const text = (input || "").trim();
   const lower = text.toLowerCase();
 
-  if (/^(help|examples?|commands?)\b/.test(lower) || /what can (you|i)\s+do/.test(lower))
+  if (/^(help|examples?|commands?|hi|hey|hello|gm|yo|sup)\b/.test(lower) || /what can (you|i)\s+do/.test(lower))
     return { type: "help", engine: "rules" };
 
   if (/\b(capabilit|pallets?|features)\b/.test(lower) || /what can this chain/.test(lower))
@@ -43,7 +43,7 @@ export function parseDeterministic(input: string): Intent {
   const transfers: { to: string; amountPot: string }[] = [];
   let tm: RegExpExecArray | null;
   while ((tm = transferRe.exec(text)) !== null) transfers.push({ to: resolveName(tm[2]), amountPot: tm[1] });
-  if (transfers.length && /\b(send|transfer|pay|airdrop|distribute)\b/.test(lower)) {
+  if (transfers.length && /\b(send|transfer|pay|airdrop|distribute|give|move|wire)\b/.test(lower)) {
     return transfers.length === 1
       ? { type: "write", action: { kind: "transfer", ...transfers[0] }, engine: "rules" }
       : { type: "write", action: { kind: "batchTransfer", transfers }, engine: "rules" };
@@ -68,7 +68,8 @@ export function parseDeterministic(input: string): Intent {
 
   // balance
   m = text.match(new RegExp(`balance\\s+(?:of\\s+)?(${TARGET})`, "i")) ||
-      text.match(new RegExp(`(?:how much|holdings?|funds?)\\b.*?(${TARGET})`, "i"));
+      text.match(new RegExp(`(${TARGET})['’]?s?\\s+balance`, "i")) ||
+      text.match(new RegExp(`(?:how much|how many|holdings?|funds?)\\b.*?(${TARGET})`, "i"));
   if (m) return { type: "read", op: { kind: "balance", address: resolveName(m[1]) }, engine: "rules" };
 
   // explicit account inspection

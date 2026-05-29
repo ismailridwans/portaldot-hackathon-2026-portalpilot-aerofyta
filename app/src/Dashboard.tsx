@@ -201,8 +201,9 @@ function Composer({ input, setInput, send, busy, network }: any) {
   const [focus, setFocus] = useState(false);
   const [active, setActive] = useState(-1);
   const q = input.trim().toLowerCase();
-  const matches = (q ? SUGGEST.filter((s) => s.t.toLowerCase().includes(q) || s.h.toLowerCase().includes(q)) : SUGGEST).slice(0, 6);
-  const open = focus && matches.length > 0 && !busy;
+  // Only suggest while actually typing — never on an empty/focused box (that made it feel "stuck").
+  const matches = q ? SUGGEST.filter((s) => s.t.toLowerCase().includes(q) || s.h.toLowerCase().includes(q)).slice(0, 6) : [];
+  const open = focus && q.length > 0 && matches.length > 0 && !busy;
 
   function onKey(e: any) {
     if (!open) { if (e.key === "Enter") send(input); return; }

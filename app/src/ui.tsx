@@ -66,7 +66,10 @@ export function useTheme() {
   return {
     theme,
     toggle: () => {
-      set(theme === "dark" ? "light" : "dark");
+      // Base the next theme on the live attribute (source of truth) so rapid
+      // toggles and multiple toggle instances always flip correctly.
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      set(next);
       window.dispatchEvent(new Event("pp-theme-change"));
     },
   };
