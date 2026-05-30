@@ -167,7 +167,7 @@ Or just import the GitHub repo at **vercel.com** — the config is detected auto
 - ink! deploy/flip/read wired to this node's legacy `pallet-contracts` (ready for a compatible ink! ~3.0 artifact).
 
 ### Next phase plans (optional)
-- Wallet‑extension signing (Polkadot.js / Talisman / SubWallet) — non‑custodial.
+- **Non‑custodial wallet connect** — Polkadot.js / Portaldot Wallet via **SIWE‑substrate** (sign a nonce to authenticate, no gas), then sign your own extrinsics in‑browser; replaces the demo's server‑side signer. (Talisman/SubWallet need post‑V14 metadata, so they're gated for now.)
 - ink! contract **live** deploy against a compatible node.
 - Multisig & scheduled actions; spend limits / allowlists.
 - Publish `@portalpilot/sdk` to npm; hosted public deployment.
