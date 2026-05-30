@@ -145,7 +145,7 @@ Or just import the GitHub repo at **vercel.com** — the config is detected auto
 ---
 
 ## Demo
-- **Video link:** `‹add your demo video URL›`
+- **Video link:** https://youtu.be/7g8LJRCLIGo
 - **Live demo link:** **https://portalpilot-ruby.vercel.app** — live on Portaldot mainnet (reads, POT fee preview & on‑chain dry‑run). POT‑gas writes run from a local node. Local dev: `http://localhost:5173`.
 - **Verify it yourself (one command):** with a local dev node running, **`npm run smoke`** runs mainnet reads + a real local plan → dry‑run → execute and prints the receipt — Bob's balance moves on‑chain and `treasury.Deposit` proves POT gas. (See [`docs/DEMO.md`](docs/DEMO.md) for the full transcript + recording script.)
 - **Test accounts / test data:** Substrate dev accounts (funded on a local `--dev` node):
