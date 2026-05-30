@@ -27,8 +27,30 @@
 
 ---
 
+## 🎙️ WORD‑FOR‑WORD NARRATION (read this aloud — ~90s)
+
+> **[0:00 — app on screen, point at the explorer]**
+> "Hi! This is **PortalPilot** — an AI copilot for Portaldot. Portaldot is a real Substrate blockchain, but it has no explorer, no JavaScript SDK, and a steep learning curve. PortalPilot lets you just *talk* to the chain — in plain English — and keeps you safe. On the right is our **live explorer**, streaming blocks in real time."
+>
+> **[0:15 — type the command]**
+> "Let me show you. To send tokens I don't write any code — I just type: **send 1 POT to Bob**."
+>
+> **[0:27 — plan card appears]**
+> "Instantly, PortalPilot turns that sentence into the exact on‑chain extrinsic. But before anything is signed, it **simulates the transaction on‑chain** with a dry‑run, and shows me the **real network fee — just 0.0147 POT**. You can see the whole workflow here: understand, compose, simulate, price. Nothing has hit the chain yet — I'm still in control."
+>
+> **[0:52 — click Confirm & sign]**
+> "It all checks out, so I approve — I click **Confirm and sign**. Now, and only now, it signs the transaction and submits it to Portaldot."
+>
+> **[1:05 — receipt appears]**
+> "And there's our **receipt** — a real transaction in a real block. And here's the key proof that **POT was paid as gas**: the **`treasury.Deposit`** event, right next to the transfer and ExtrinsicSuccess. That's the whole loop — plain English, simulated, confirmed, on‑chain — from a single sentence."
+>
+> **[1:22 — close]**
+> "The AI proposes, the chain verifies, and I authorize. That's PortalPilot — the simplest, safest way onto Portaldot. Thanks!"
+
+*(~200 words ≈ 85–90s at a natural pace. To show technical depth, say the extrinsic name out loud: "balances transferKeepAlive.")*
+
 ## ⚡ 30‑SECOND ELEVATOR (if time is very tight)
-> "PortalPilot is an AI copilot for Portaldot. I type `send 1 POT to bob`; it builds the extrinsic, **dry‑runs it on‑chain**, shows the **exact POT fee**, and after I confirm it executes and returns a **real receipt with `treasury.Deposit`** — proving POT was paid as gas. Plain English in, a safe on‑chain transaction out."
+> "This is **PortalPilot**, an AI copilot for Portaldot. I type **send 1 POT to Bob** — it builds the extrinsic, **simulates it on‑chain**, and shows the real fee: 0.0147 POT. I click Confirm — it signs and submits — and the receipt shows a real block plus the **`treasury.Deposit`** event, proving POT was paid as gas. Plain English in, a safe on‑chain transaction out."
 
 ---
 
