@@ -2,7 +2,7 @@
 
 Goal: prove **native Portaldot deployment + POT gas**, a **working MVP**, **application value**, and **presentation quality** — fast.
 
-**Before recording:** local node running (`./portaldot_dev --dev --rpc-cors all`), `npm run dev` up, browser at the app, window clean. Save a still to `docs/screenshot.png` for the README.
+**Before recording:** local node running (`./portaldot_dev --dev --tmp --rpc-cors all`), `npm run dev` up, browser at the app, window clean. Save a still to `docs/screenshot.png` for the README.
 
 ---
 
@@ -70,7 +70,7 @@ Bob moves **50,020 → 50,023 POT** and the receipt carries `treasury.Deposit` (
 ## Optional: live writes on the *hosted* URL (tunnel)
 To make the deployed Vercel site execute real writes during a live presentation, expose your funded dev node and point the hosted **Local** network at it:
 ```bash
-# 1) run your dev node (WSL):   ./portaldot_dev --dev --rpc-cors all
+# 1) run your dev node (WSL):   ./portaldot_dev --dev --tmp --rpc-cors all
 # 2) expose it over a public wss tunnel (no account needed):
 cloudflared tunnel --url http://127.0.0.1:9944     # prints https://<id>.trycloudflare.com
 # 3) on Vercel set the env var to the wss form, then redeploy:

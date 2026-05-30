@@ -121,7 +121,7 @@ npm install --prefix app
 
 # 3. Compile & deploy — start a local Portaldot node for POT-gas writes (WSL/Linux)
 #    (download per docs, then:)
-./portaldot_dev --dev --rpc-cors all          # funded Alice/Bob at ws://127.0.0.1:9944
+./portaldot_dev --dev --tmp --rpc-cors all          # funded Alice/Bob at ws://127.0.0.1:9944
 
 # 4. Launch frontend (optional dev mode: web :5173 + api :8787)
 npm run dev
