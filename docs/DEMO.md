@@ -1,80 +1,61 @@
-# PortalPilot — Demo video script (≈ 2:45)
+# PortalPilot — Demo Script (time‑boxed)
 
-Goal: prove **native Portaldot deployment + POT gas**, a **working MVP**, **application value**, and **presentation quality** — fast.
+**What it is (one line):** PortalPilot is an **AI copilot for Portaldot** — say what you want in plain English; it builds the extrinsic, **simulates it on‑chain with the real POT fee**, and executes **only after you confirm**, returning a real receipt.
 
-**Before recording:** local node running (`./portaldot_dev --dev --tmp --rpc-cors all`), `npm run dev` up, browser at the app, window clean. Save a still to `docs/screenshot.png` for the README.
-
----
-
-**0:00 – 0:20 · Hook (problem)**
-> “Portaldot is a real Substrate chain — but it has no block explorer, no JS SDK, no faucet, and a steep Rust learning curve. So I built PortalPilot: you just talk to the chain — and it keeps you safe.”
-- Show the app. Point at the **Live Explorer** streaming blocks on the right.
-
-**0:20 – 0:45 · It’s the real chain (reads)**
-- Click **Mainnet** in the toggle. Header updates to “Portaldot Mainnet · #2,5xx,xxx · POT · 25p/155x”.
-- Type: `network status` → read it back.
-- Type: `balance of 5GrwvaEF…GKutQY` (or any address) → real on-chain balance.
-> “That’s live mainnet data — 25 pallets, 155 extrinsics, POT at 14 decimals.”
-
-**0:45 – 1:45 · The hero: natural language → safe POT transaction**
-- Click **Local** (explain: no public faucet yet, so we execute on a Portaldot dev node — same runtime, real POT gas).
-- Type: `send 1 POT to bob`.
-- **Pause on the preview card:** extrinsic `balances.transferKeepAlive`, recipient, amount, **dry-run ✓ simulated**, **Network fee 0.0147 POT**, call data.
-> “Before anything is signed, PortalPilot simulates it on-chain and shows the exact POT fee. Nothing happens until I confirm.”
-- Click **Confirm & sign** → receipt: **✓ Executed on-chain — POT gas paid**, block hash, `balances.Transfer, treasury.Deposit, system.ExtrinsicSuccess`.
-> “Real transaction, real block, POT paid as gas — see the treasury deposit.”
-
-**1:45 – 2:10 · Safety is real, not a label**
-- Type: `send 1 POT to 5xxinvalidxx` → rejected / dry-run would-fail, **Confirm disabled**.
-- Type: `make me a sandwich` → politely declined with suggestions.
-> “The AI only proposes; the chain simulates; I authorize. Simulate-before-sign is the recommended safety pattern for on-chain agents.”
-
-**2:10 – 2:35 · Range + ecosystem value**
-- Quickfire: `airdrop 1 POT to bob and 2 POT to charlie` (batch preview), `post on-chain remark: gm Portaldot` (confirm → `system.Remarked`), `recent transfers`.
-> “Batches, remarks, and a built-in explorer — plus the first JS/TS SDK Portaldot was missing.”
-
-**2:35 – 2:45 · Close**
-> “PortalPilot makes Portaldot usable by anyone — safely. Copilot, explorer, and SDK in one. Thanks!”
+> Judges' format (Rule 2): **User action → local Portaldot tx → POT gas/fee shown → on‑chain result → user‑visible result**, in 60–90 seconds. The script below hits exactly that.
 
 ---
 
-### Tips
-- Keep **AI · rules** mode (no API key) so it’s deterministic and offline-safe; mention Claude can be enabled for free-form phrasing.
-- If a write ever lags, it’s block time (~6s) — narrate the dry-run/fee while it includes.
+## ⏱️ Before you record (setup — not on camera)
+1. **Local node** (WSL): `cd /root/portaldot/portaldot-testnet-ubuntu && ./portaldot_dev --dev --tmp --rpc-cors all`
+2. **App**: `npm run dev`
+3. Open **http://localhost:5173** (use `localhost`, *not* `127.0.0.1`) → **Launch App**. It opens on **Local** (Alice is funded). Clean, dark window.
 
 ---
 
-## Reproducible proof — one command (`npm run smoke`)
+## 🎬 THE 90‑SECOND DEMO (one flow, proves everything)
 
-With a local dev node running, `npm run smoke` exercises the whole stack against the **real** chain and prints a transcript anyone can reproduce:
+| Time | Say this | Do / show this |
+|---|---|---|
+| **0:00–0:12** | "Portaldot is a real Substrate chain — but it has no explorer, no JS SDK, and a steep learning curve. PortalPilot lets you just *talk* to the chain — safely." | App on screen. Point at the **Live Explorer** streaming blocks on the right. |
+| **0:12–0:25** | "Watch — I'll send POT in plain English." | Type **`send 1 POT to bob`** → Enter. |
+| **0:25–0:50** | "It built the exact extrinsic — `balances.transferKeepAlive` — **simulated it on‑chain** with a dry‑run, and shows the **real POT fee: 0.0147 POT**. Nothing is signed yet." | Pause on the **plan card**: extrinsic · recipient · **✓ simulated** · **fee 0.0147 POT**. Point to the **7‑stage workflow tracer**. |
+| **0:50–1:05** | "I approve — and only now does it sign and submit." | Click **Confirm & sign**. |
+| **1:05–1:25** | "Real transaction, real block, **POT paid as gas** — there's the `treasury.Deposit`. Plain English in → a safe on‑chain transaction out, in one sentence." | Show the **receipt**: ✓ Executed on‑chain · **block hash** · events **`balances.Transfer, treasury.Deposit, system.ExtrinsicSuccess`**. |
 
+> **+15s if you have it (the safety beat):** flip to **Mainnet**, type a transfer → the dry‑run **blocks it** ("insufficient balance") and **Confirm is disabled**. *"The chain catches a doomed transaction before you ever sign — that's the safety pipeline."*
+
+---
+
+## ⚡ 30‑SECOND ELEVATOR (if time is very tight)
+> "PortalPilot is an AI copilot for Portaldot. I type `send 1 POT to bob`; it builds the extrinsic, **dry‑runs it on‑chain**, shows the **exact POT fee**, and after I confirm it executes and returns a **real receipt with `treasury.Deposit`** — proving POT was paid as gas. Plain English in, a safe on‑chain transaction out."
+
+---
+
+## 🗣️ Talking points (sprinkle as needed)
+- **POT as gas:** "The `treasury.Deposit` in the receipt *is* the POT fee paid as gas."
+- **Safety:** "Simulate‑before‑sign — the AI proposes, the chain verifies, the human authorizes."
+- **Native, not EVM:** "Substrate via `@polkadot/api` — `balances`, `utility.batchAll`, `system.remark`, `pallet-contracts`."
+- **Ecosystem value:** "The first JS/TS SDK + the only live explorer Portaldot had been missing."
+
+## ✅ Why this is Green (no mocks — Rule 3)
+Real chain · real extrinsic · real `system.dryRun` · real POT gas · real receipt. **Nothing in this flow is mocked.** (ink! deploy is *wired* to the node's legacy `pallet-contracts` but awaits a compatible artifact — it is **not** part of this demo.)
+
+---
+
+## 🔁 Reproducible proof (one command — for the write‑up / judges)
+With the local node running, `npm run smoke` exercises the whole stack against the **real** chain:
 ```
-── MAINNET reads ──
-  Portaldot Mainnet | block #2,527,453 | POT 14dp | 25 pallets / 155 calls
-── INTENT parsing ──  8 phrases → correct intents; "make me a sandwich" → declined
-── LOCAL node: plan → dry-run → execute (real POT gas) ──
-  before: Alice 49,975.7978 POT, Bob 50,020 POT
-  PLAN:   Transfer 3 POT → Bob | fee=0.0148 POT | dryRun ok=true
-  EXECUTED: ok=true block=0xedae57821b… tx=0x4f7a1f3b8d…
-           events: balances.Transfer, treasury.Deposit, system.ExtrinsicSuccess
-  after:  Bob 50,023 POT                         ← +3 POT, on-chain
-  remark: EXECUTED ok=true   events: system.Remarked, treasury.Deposit, system.ExtrinsicSuccess
+MAINNET  Portaldot Mainnet | #2,528,336 | POT 14dp | 25 pallets / 155 calls
+LOCAL    before Bob 50,002 POT
+         PLAN Transfer 3 POT → Bob | fee 0.0148 POT | dryRun ok=true
+         EXECUTED ok=true | block 0x1a3927d629… | balances.Transfer, treasury.Deposit, ExtrinsicSuccess
+         after  Bob 50,005 POT   ← +3 POT, on-chain
 ```
+- **Live reads (anyone, any time):** https://portalpilot-ruby.vercel.app
+- **Repo:** https://github.com/ismailridwans/portaldot-hackathon-2026-portalpilot-aerofyta
 
-Bob moves **50,020 → 50,023 POT** and the receipt carries `treasury.Deposit` (POT gas paid) — undeniable, repeatable proof of a working native transaction.
-
-## Where each thing runs
-- **Hosted demo** (`portalpilot-ruby.vercel.app`) — live **mainnet reads**, real POT **fee preview**, and the **dry-run safety** (writes are blocked because the demo signer is unfunded on mainnet and there is no faucet). Always on; anyone can open it.
-- **Local** (`npm run dev` + a dev node) — the **successful POT-gas writes** (Alice is funded). This is what the video shows.
-
-## Optional: live writes on the *hosted* URL (tunnel)
-To make the deployed Vercel site execute real writes during a live presentation, expose your funded dev node and point the hosted **Local** network at it:
-```bash
-# 1) run your dev node (WSL):   ./portaldot_dev --dev --tmp --rpc-cors all
-# 2) expose it over a public wss tunnel (no account needed):
-cloudflared tunnel --url http://127.0.0.1:9944     # prints https://<id>.trycloudflare.com
-# 3) on Vercel set the env var to the wss form, then redeploy:
-vercel env add PORTALDOT_LOCAL_WS production       # paste wss://<id>.trycloudflare.com
-vercel --prod
-```
-The hosted **Local** network now signs with the funded Alice on your tunneled node and returns real receipts. Caveat: it only works while your node + tunnel are running, and the free tunnel URL changes each run — use it for a live demo, not as the always-on state.
+### Recording tips
+- Keep **AI · rules** mode (no API key) — deterministic & offline‑safe; mention Claude can be toggled on for free‑form phrasing.
+- A write takes ~6s (block time) — narrate the dry‑run/fee while it includes.
+- Record at 1280×800 or larger, clean window, dark theme. YouTube *unlisted* is fine for the link.
