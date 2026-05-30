@@ -107222,6 +107222,11 @@ function resolveEndpoint(network) {
 }
 async function getApi(network) {
   const endpoint = resolveEndpoint(network);
+  if (process.env.VERCEL && /127\.0\.0\.1|localhost/.test(endpoint)) {
+    throw new Error(
+      "The Local network needs a node on your machine and isn't reachable from the hosted demo \u2014 switch to Mainnet, or run PortalPilot locally."
+    );
+  }
   if (!apis.has(endpoint)) {
     const provider = new WsProvider(endpoint, 2500);
     apis.set(

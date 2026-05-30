@@ -5,6 +5,14 @@ import { understand } from "./intent/index";
 import { DEV_ADDRESSES } from "./intent/types";
 import { disconnectAll } from "./sdk/portaldot";
 
+// Quiet the two benign @polkadot init warnings so the proof transcript is clean.
+const _warn = console.warn.bind(console);
+console.warn = (...a: any[]) => {
+  const s = a.map(String).join(" ");
+  if (s.includes("Unable to map [u8; 32]") || s.includes("MetadataApi not available")) return;
+  _warn(...a);
+};
+
 const ALICE = DEV_ADDRESSES.alice;
 const BOB = DEV_ADDRESSES.bob;
 

@@ -46,6 +46,14 @@ export default function Dashboard({ onHome }: { onHome?: () => void }) {
   }, []);
 
   const refresh = useCallback(async () => {
+    // On the hosted demo, Local can't reach a node — skip polling entirely
+    // (no failed requests, no serverless 502s) and show a clean state.
+    if (IS_HOSTED && network === "local") {
+      setChain(null);
+      setChainErr("Local node isn't reachable from the hosted demo — use Mainnet.");
+      setBlocks([]);
+      return;
+    }
     try {
       setChain(await api.chain(network));
       setChainErr("");
