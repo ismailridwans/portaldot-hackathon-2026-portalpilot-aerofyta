@@ -28,6 +28,7 @@ export const NETWORKS = {
 export type NetworkId = keyof typeof NETWORKS;
 
 const apis = new Map<string, Promise<ApiPromise>>();
+const providers = new Map<string, WsProvider>();
 
 export function resolveEndpoint(network?: string): string {
   if (!network) return process.env.PORTALDOT_WS || NETWORKS.mainnet.endpoint;
@@ -47,12 +48,36 @@ export async function getApi(network?: string): Promise<ApiPromise> {
   }
   if (!apis.has(endpoint)) {
     const provider = new WsProvider(endpoint, 2500); // auto-reconnect every 2.5s
+    providers.set(endpoint, provider);
     apis.set(
       endpoint,
       ApiPromise.create({ provider, noInitWarn: true, throwOnConnect: false })
     );
   }
   return apis.get(endpoint)!;
+}
+
+/**
+ * Send a raw JSON-RPC request, bypassing @polkadot/api's typed RPC layer.
+ *
+ * Same reason contracts.ts hand-builds its extrinsics: Portaldot's contracts
+ * RPC is the 2021 shape, and the typed layer builds the modern one. Calling
+ * api.rpc.contracts.call() injects a storageDepositLimit field the node has
+ * never heard of, and it answers:
+ *
+ *   -32602: Invalid params: unknown field `storageDepositLimit`,
+ *           expected one of `origin`, `dest`, `value`, `gasLimit`, `inputData`
+ */
+export async function sendRaw<T = any>(
+  network: string | undefined,
+  method: string,
+  params: unknown[]
+): Promise<T> {
+  await getApiWithTimeout(network); // ensures the provider exists and is connected
+  const endpoint = resolveEndpoint(network);
+  const provider = providers.get(endpoint);
+  if (!provider) throw new Error(`No provider for ${endpoint}`);
+  return provider.send<T>(method, params);
 }
 
 // Connect with a timeout so an unreachable endpoint (e.g. a local node that isn't running) fails fast.

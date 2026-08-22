@@ -3,7 +3,7 @@ import { u8aConcat, hexToU8a, u8aToHex, BN } from "@polkadot/util";
 import { randomAsU8a } from "@polkadot/util-crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { getApiWithTimeout } from "./portaldot";
+import { getApiWithTimeout, sendRaw } from "./portaldot";
 import { getSigner } from "./signer";
 
 /*
@@ -21,6 +21,21 @@ let lastAddress: string | null = null;
 interface Loaded {
   wasm: Uint8Array;
   sel: Record<string, string>; // new / flip / get -> 0x… selector
+}
+
+/**
+ * Read a constructor/message name out of ink! metadata.
+ *
+ * ink! 3.1+ calls the field `label` and stores a string. The ~3.0-rc metadata
+ * this node needs (metadataVersion 0.1.0) calls it `name` and stores a path
+ * array: `"name": ["flip"]`. Reading only `label` finds nothing, silently
+ * falls back to the canonical selectors below, and happens to be right for the
+ * flipper — but would be wrong for any other contract, without saying so.
+ */
+function labelOf(x: any): string | null {
+  const n = x?.label ?? x?.name;
+  const s = Array.isArray(n) ? n[n.length - 1] : n;
+  return typeof s === "string" ? s : null;
 }
 
 function loadFlipper(): Loaded | null {
@@ -42,8 +57,11 @@ function loadFlipper(): Loaded | null {
     // canonical flipper selectors (blake2 of the label); overridden by metadata if available
     const sel: Record<string, string> = { new: "0x9bae9d5e", flip: "0x633aa551", get: "0x2f865bd9" };
     if (spec) {
-      for (const c of spec.constructors || []) if (c.label === "new" && c.selector) sel.new = c.selector;
-      for (const m of spec.messages || []) if (sel[m.label] !== undefined && m.selector) sel[m.label] = m.selector;
+      for (const c of spec.constructors || []) if (labelOf(c) === "new" && c.selector) sel.new = c.selector;
+      for (const m of spec.messages || []) {
+        const l = labelOf(m);
+        if (l && sel[l] !== undefined && m.selector) sel[l] = m.selector;
+      }
     }
     return { wasm: hexToU8a(wasmHex), sel };
   } catch {
@@ -58,7 +76,18 @@ export function flipperAddress(): string | null {
   return lastAddress;
 }
 
-const ENDOWMENT = new BN(10).pow(new BN(14)); // 1 POT — legacy instantiate requires an endowment
+// The legacy pallet rejects anything at or below its subsistence threshold,
+// Balances.ExistentialDeposit (1 POT) + Contracts.TombstoneDeposit (7.35 POT)
+// = 8.35 POT exactly, with:
+//
+//   Module { index: 13, error: 9, message: "NewContractNotFunded" }
+//
+// Measured against the runtime: 8.35 POT is refused, 8.36 POT instantiates.
+// That error is worth recognising, because the wasm never runs when it fires —
+// it reads like a broken module and is not one. 30 POT also keeps the contract
+// clear of its own rent deposit (DepositPerContract is 7.35 POT), so it will
+// not be evicted while you are demoing it.
+const ENDOWMENT = new BN(30).mul(new BN(10).pow(new BN(14))); // 30 POT
 const GAS = new BN("500000000000"); // legacy Compact<u64> gas budget
 
 function withArgBool(sel: string, v: boolean): string {
@@ -117,10 +146,18 @@ export async function readFlipper(network?: string): Promise<boolean | null> {
   const api = await getApiWithTimeout(network);
   const signer = await getSigner(api.registry.chainSS58 ?? 42);
   try {
-    const res: any = await (api.call as any).contractsApi.call(signer.address, lastAddress, 0, GAS, f.sel.get);
-    const hex: string = (res?.result?.isOk ? res.result.asOk.data?.toHex?.() : res?.toHex?.()) || "0x00";
-    return hex.slice(-2) === "01";
+    // The runtime API is the modern one as far as @polkadot/api is concerned —
+    // api.call.contractsApi.call() throws "Expected 6 arguments, found 5",
+    // because it wants a storageDepositLimit this pallet does not take. The
+    // contracts_call RPC takes the 2021 shape, so go straight at it.
+    const res: any = await sendRaw(network, "contracts_call", [
+      { origin: signer.address, dest: lastAddress, value: 0, gasLimit: GAS.toNumber(), inputData: f.sel.get },
+    ]);
+    // { debugMessage, gasConsumed, result: { Ok: { data: "0x01", flags: 0 } } }
+    const data: string | undefined = res?.result?.Ok?.data;
+    if (typeof data !== "string") return null;
+    return data.slice(-2) === "01";
   } catch {
-    return null; // legacy ContractsApi shape may differ; flip events still prove state change
+    return null; // flip events still prove the state change
   }
 }
